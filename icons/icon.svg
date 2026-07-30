@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <!-- Gradient sampled from the generated base.png so the tile keeps its look. -->
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4b5de5"/>
+      <stop offset="1" stop-color="#b740f0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="128" height="128" rx="28" fill="url(#g)"/>
+
+  <!--
+    One shape, not two overlapping ones: the shield is solid white and the Z is
+    cut out of it with the even-odd rule. That is what keeps the middle clean
+    and legible once this is scaled down to 16px.
+  -->
+  <path fill="#ffffff" fill-rule="evenodd" d="
+    M64 12 L110 29 V69 C110 96 91 114 64 122 C37 114 18 96 18 69 V29 Z
+    M42 42 L86 42 L86 54 L61 76 L86 76 L86 88 L42 88 L42 76 L67 54 L42 54 Z
+  "/>
+</svg>

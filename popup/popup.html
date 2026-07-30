@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>ZPassword</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <svg class="logo" viewBox="0 0 128 128" aria-hidden="true">
+          <defs>
+            <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#4b5de5" />
+              <stop offset="1" stop-color="#b740f0" />
+            </linearGradient>
+          </defs>
+          <rect width="128" height="128" rx="28" fill="url(#lg)" />
+          <path fill="#fff" fill-rule="evenodd" d="M64 12 L110 29 V69 C110 96 91 114 64 122 C37 114 18 96 18 69 V29 Z
+                   M42 42 L86 42 L86 54 L61 76 L86 76 L86 88 L42 88 L42 76 L67 54 L42 54 Z" />
+        </svg>
+        <span class="wordmark">ZPassword</span>
+        <span class="spacer"></span>
+        <span class="lock-timer" id="lock-timer" hidden></span>
+        <button id="lock-btn" class="icon-btn" title="Lock history now" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7 10V7a5 5 0 0 1 10 0v3" />
+            <rect x="4" y="10" width="16" height="10" rx="2" />
+          </svg>
+        </button>
+      </header>
+
+      <nav class="tabs" role="tablist" aria-label="Sections">
+        <button class="tab is-active" data-pane="generate" role="tab"
+                id="tab-generate" aria-controls="pane-generate" aria-selected="true">Generate</button>
+        <button class="tab" data-pane="recent" role="tab"
+                id="tab-recent" aria-controls="pane-recent" aria-selected="false" tabindex="-1">Recent</button>
+        <button class="tab" data-pane="sites" role="tab"
+                id="tab-sites" aria-controls="pane-sites" aria-selected="false" tabindex="-1">Sites</button>
+        <button class="tab" data-pane="settings" role="tab"
+                id="tab-settings" aria-controls="pane-settings" aria-selected="false" tabindex="-1">Settings</button>
+        <button class="tab" data-pane="about" role="tab"
+                id="tab-about" aria-controls="pane-about" aria-selected="false" tabindex="-1">About</button>
+      </nav>
+
+      <main>
+
+        <section class="pane is-active" id="pane-generate" role="tabpanel" aria-labelledby="tab-generate">
+          <div class="intro" id="intro" hidden>
+            <p><b>A password is already waiting</b> every time you open this.</p>
+            <ul>
+              <li>Click it to copy, or <b>Fill on page</b> to put it in the form.</li>
+              <li>Whatever you change here is remembered — for this site if you pin it.</li>
+              <li>Turn on saved history to get a password back after you have closed this.</li>
+            </ul>
+            <button class="btn small" id="intro-dismiss">Got it</button>
+          </div>
+
+          <div class="pw-wrap">
+            <div class="pw" id="pw" tabindex="0" role="textbox" aria-readonly="true"
+                 aria-label="Generated password. Click to copy."></div>
+            <button class="icon-btn regen" id="regen" title="Generate another (R)" aria-label="Generate another">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20 12a8 8 0 1 1-2.3-5.6" />
+                <path d="M20 4v5h-5" />
+              </svg>
+            </button>
+          </div>
+
+          <p class="error" id="error" hidden></p>
+
+          <div class="strength">
+            <div class="meter"><span id="meter-fill"></span></div>
+            <div class="strength-meta">
+              <span id="strength-text"></span>
+              <span id="bits-text" class="muted"></span>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn primary" id="copy">Copy</button>
+            <button class="btn" id="fill">Fill on page</button>
+          </div>
+
+          <p class="fill-status" id="fill-status" hidden></p>
+
+          <button class="nudge" id="saved-hint" hidden></button>
+
+          <div class="control">
+            <div class="control-head">
+              <label for="length">Length</label>
+              <output id="length-out" for="length">20</output>
+            </div>
+            <input type="range" id="length" min="6" max="64" step="1" aria-label="Password length" />
+          </div>
+
+          <div class="chips" id="chips">
+            <div class="chip" data-class="upper">
+              <button type="button" class="chip-toggle">
+                <span class="chip-label">A–Z</span>
+                <span class="chip-count"></span>
+              </button>
+              <button type="button" class="chip-more" title="Choose which characters"
+                      aria-label="Choose which uppercase letters">⋯</button>
+            </div>
+            <div class="chip" data-class="lower">
+              <button type="button" class="chip-toggle">
+                <span class="chip-label">a–z</span>
+                <span class="chip-count"></span>
+              </button>
+              <button type="button" class="chip-more" title="Choose which characters"
+                      aria-label="Choose which lowercase letters">⋯</button>
+            </div>
+            <div class="chip" data-class="digits">
+              <button type="button" class="chip-toggle">
+                <span class="chip-label">0–9</span>
+                <span class="chip-count"></span>
+              </button>
+              <button type="button" class="chip-more" title="Choose which characters"
+                      aria-label="Choose which digits">⋯</button>
+            </div>
+            <div class="chip" data-class="symbols">
+              <button type="button" class="chip-toggle">
+                <span class="chip-label">!#$</span>
+                <span class="chip-count"></span>
+              </button>
+              <button type="button" class="chip-more" title="Choose which characters"
+                      aria-label="Choose which symbols">⋯</button>
+            </div>
+          </div>
+          <p class="chips-hint">Double-click a kind — or press ⋯ — to pick exact characters.</p>
+
+          <details class="adv">
+            <summary>Advanced</summary>
+            <div class="adv-body">
+              <label class="row">
+                <input type="checkbox" data-opt="excludeAmbiguous" />
+                <span>Exclude look-alikes <code>I l 1 O 0 o</code></span>
+              </label>
+              <label class="row">
+                <input type="checkbox" data-opt="requireEachType" />
+                <span>At least one of each selected kind</span>
+              </label>
+              <label class="row">
+                <input type="checkbox" data-opt="noRepeat" />
+                <span>Never repeat a character</span>
+              </label>
+            </div>
+          </details>
+
+          <div class="site" id="site-bar">
+            <div class="site-info">
+              <span class="site-host" id="site-host"></span>
+              <span class="site-note muted" id="site-note"></span>
+            </div>
+            <button class="btn small" id="site-toggle"></button>
+          </div>
+
+          <button class="nudge" id="history-nudge" hidden>
+            Saving is off — set a passphrase to keep a copy of what you generate →
+          </button>
+        </section>
+
+        <section class="pane" id="pane-recent" role="tabpanel" aria-labelledby="tab-recent">
+          <div class="state" id="recent-off" hidden>
+            <p class="lead">Saving generated passwords is turned off for this scope.</p>
+            <button class="btn primary block" data-goto="settings">Open settings</button>
+          </div>
+
+          <div class="state" id="recent-setup" hidden>
+            <p class="lead">Keep a copy of every password you use, encrypted with a passphrase only you know.</p>
+            <label class="field">
+              <span>Passphrase</span>
+              <input type="password" id="setup-pass" autocomplete="new-password" />
+            </label>
+            <div class="strength compact">
+              <div class="meter"><span id="setup-meter"></span></div>
+              <div class="strength-meta">
+                <span id="setup-verdict"></span>
+                <span id="setup-bits" class="muted"></span>
+              </div>
+            </div>
+            <p class="hint" id="setup-advice"></p>
+            <label class="field">
+              <span>Repeat it</span>
+              <input type="password" id="setup-pass2" autocomplete="new-password" />
+            </label>
+            <p class="error" id="setup-err" hidden></p>
+            <p class="hint">
+              There is no reset. Forget this passphrase and the saved passwords are unreadable —
+              including to you.
+            </p>
+            <button class="btn primary block" id="setup-go">Turn on saved history</button>
+          </div>
+
+          <div class="state" id="recent-locked" hidden>
+            <p class="lead">History is locked.</p>
+            <label class="field">
+              <span>Passphrase</span>
+              <input type="password" id="unlock-pass" autocomplete="current-password" />
+            </label>
+            <p class="error" id="unlock-err" hidden></p>
+            <button class="btn primary block" id="unlock-go">Unlock</button>
+          </div>
+
+          <div class="state" id="recent-list" hidden>
+            <input type="search" id="entry-search" class="search" placeholder="Search by site or note"
+                   autocomplete="off" aria-label="Search saved passwords" />
+            <div class="list-head">
+              <span class="muted" id="entry-count"></span>
+              <button class="link danger" id="clear-history">Clear all</button>
+            </div>
+            <p class="error" id="entry-warn" hidden></p>
+            <ul class="entries" id="entries"></ul>
+            <p class="empty" id="entries-empty" hidden>
+              Nothing here yet. Copy or fill a password and it lands here automatically.
+            </p>
+          </div>
+        </section>
+
+        <section class="pane" id="pane-sites" role="tabpanel" aria-labelledby="tab-sites">
+          <p class="lead">
+            Sites with rules of their own. Everywhere else follows your defaults.
+          </p>
+          <input type="search" id="site-search" class="search" placeholder="Search sites"
+                 autocomplete="off" aria-label="Search sites" hidden />
+          <ul class="site-cards" id="site-cards"></ul>
+          <p class="empty" id="sites-empty" hidden>
+            No site rules yet. Open a website and press <b>Pin these here</b> on the Generate tab.
+          </p>
+          <button class="btn danger block" id="clear-sites" hidden>Remove every site rule</button>
+        </section>
+
+        <section class="pane" id="pane-settings" role="tabpanel" aria-labelledby="tab-settings">
+          <div class="scope" id="scope-bar">
+            <span id="scope-text"></span>
+          </div>
+
+          <h3>The moment I open ZPassword</h3>
+          <label class="row">
+            <input type="checkbox" data-prof="autoFill" />
+            <span>Fill the password into the page straight away</span>
+          </label>
+          <label class="row">
+            <input type="checkbox" data-prof="autoCopy" />
+            <span>Copy it to the clipboard</span>
+          </label>
+          <label class="row">
+            <input type="checkbox" data-prof="historyEnabled" />
+            <span>Save the passwords I use</span>
+          </label>
+
+          <hr />
+
+          <h3>Saved history · applies everywhere</h3>
+          <label class="row stack">
+            <span>Keep saved passwords for</span>
+            <select data-global="retentionDays">
+              <option value="7">7 days</option>
+              <option value="30">30 days</option>
+              <option value="90">90 days</option>
+              <option value="365">1 year</option>
+              <option value="0">Forever</option>
+            </select>
+          </label>
+
+          <label class="row stack">
+            <span>Lock history again after</span>
+            <select data-global="autoLockMinutes">
+              <option value="1">1 minute</option>
+              <option value="5">5 minutes</option>
+              <option value="15">15 minutes</option>
+              <option value="60">1 hour</option>
+            </select>
+          </label>
+
+          <div class="btn-row" id="backup-row" hidden>
+            <button class="btn" id="export-vault">Back up…</button>
+            <button class="btn" id="import-vault">Restore…</button>
+          </div>
+          <input type="file" id="import-file" accept="application/json,.json" hidden />
+          <p class="hint" id="backup-hint" hidden>
+            The backup stays encrypted — restoring it needs the passphrase it had when you saved it.
+          </p>
+
+          <details class="adv" id="pass-change" hidden>
+            <summary>Change history passphrase</summary>
+            <div class="adv-body">
+              <label class="field"><span>Current</span><input type="password" id="cp-old" /></label>
+              <label class="field"><span>New</span><input type="password" id="cp-new" /></label>
+              <label class="field"><span>Repeat new</span><input type="password" id="cp-new2" /></label>
+              <p class="error" id="cp-err" hidden></p>
+              <button class="btn block" id="cp-go">Change passphrase</button>
+            </div>
+          </details>
+
+          <button class="btn danger block" id="reset-vault" hidden>
+            Forgot the passphrase — erase saved history
+          </button>
+
+          <hr />
+
+          <button class="link" id="open-tab">Open ZPassword in a full tab ↗</button>
+
+          <p class="foot">
+            ZPassword <span id="version"></span> · everything stays on this device ·
+            <span id="shortcut-hint"></span>
+          </p>
+        </section>
+
+        <section class="pane" id="pane-about" role="tabpanel" aria-labelledby="tab-about">
+          <div class="about-head">
+            <svg class="about-logo" viewBox="0 0 128 128" aria-hidden="true">
+              <defs>
+                <linearGradient id="lg2" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#4b5de5" />
+                  <stop offset="1" stop-color="#b740f0" />
+                </linearGradient>
+              </defs>
+              <rect width="128" height="128" rx="28" fill="url(#lg2)" />
+              <path fill="#fff" fill-rule="evenodd" d="M64 12 L110 29 V69 C110 96 91 114 64 122 C37 114 18 96 18 69 V29 Z
+                       M42 42 L86 42 L86 54 L61 76 L86 76 L86 88 L42 88 L42 76 L67 54 L42 54 Z" />
+            </svg>
+            <div class="about-title">
+              <span class="about-name">ZPassword <span class="muted" id="about-version"></span></span>
+              <span class="about-tag">A password generator that remembers what you chose.</span>
+            </div>
+          </div>
+
+          <h3>Where to find it</h3>
+          <ul class="links">
+            <li>
+              <a href="https://zsync.eu/zpassword-extension/" target="_blank" rel="noopener noreferrer">
+                <span class="link-what">Download and releases</span>
+                <span class="link-where">zsync.eu/zpassword-extension</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://github.com/TheHolyOneZ/ZPassword-Extension" target="_blank" rel="noopener noreferrer">
+                <span class="link-what">Source code</span>
+                <span class="link-where">github.com/TheHolyOneZ/ZPassword-Extension</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://github.com/TheHolyOneZ" target="_blank" rel="noopener noreferrer">
+                <span class="link-what">Author — TheHolyOneZ</span>
+                <span class="link-where">github.com/TheHolyOneZ</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://zsync.eu" target="_blank" rel="noopener noreferrer">
+                <span class="link-what">More projects</span>
+                <span class="link-where">zsync.eu</span>
+              </a>
+            </li>
+          </ul>
+
+          <h3>Built with</h3>
+          <ul class="tech">
+            <li><b>Manifest V3</b> — Chromium and Firefox from one source tree</li>
+            <li><b>Vanilla JavaScript</b> — ES modules, no framework, no bundler, no runtime dependencies</li>
+            <li><b>Web Crypto API</b> — ECDH P-256, HKDF-SHA-256, AES-256-GCM, PBKDF2-SHA-256, HMAC-SHA-256</li>
+            <li><b>CSS custom properties</b> — light and dark from one stylesheet</li>
+            <li><b>chrome.storage</b> — sync for settings, local for the sealed vault, session for the unlocked key</li>
+            <li><b>Node test runner + jsdom</b> — 33 unit checks and 142 UI checks, run with <code>npm test</code></li>
+          </ul>
+
+          <h3>Licence</h3>
+          <p class="about-note">
+            GNU General Public License v3 or later. You may use, study, share and change it;
+            anything you pass on has to stay under the same licence and carry its source with it.
+            The full text ships as <code>LICENSE</code>, and
+            <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener noreferrer">gnu.org</a>
+            has it as well.
+          </p>
+          <p class="about-note muted">
+            © 2026 TheHolyOneZ · no accounts, no telemetry, and the extension itself never
+            talks to a server.
+          </p>
+        </section>
+      </main>
+
+      <div class="sheet" id="picker" hidden>
+        <div class="sheet-backdrop" data-close-picker></div>
+        <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="picker-title">
+          <header class="sheet-head">
+            <strong id="picker-title"></strong>
+            <button class="icon-btn" id="picker-close" title="Done" aria-label="Close" data-close-picker>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            </button>
+          </header>
+          <div class="sheet-sub">
+            <span class="muted" id="picker-count"></span>
+            <span class="sheet-actions">
+              <button class="link" data-pick="all">All</button>
+              <button class="link" data-pick="none">None</button>
+              <button class="link" data-pick="reset">Reset</button>
+            </span>
+          </div>
+          <div class="char-grid" id="picker-grid" role="group" aria-label="Characters"></div>
+          <p class="hint" id="picker-note" hidden></p>
+          <p class="hint">Arrow keys move, Space or Enter switches one on or off.</p>
+        </div>
+      </div>
+
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </div>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>
